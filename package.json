@@ -1,0 +1,20 @@
+{
+  "name": "subdub-system",
+  "version": "1.0.0",
+  "description": "subscription management system backend",
+  "license": "ISC",
+  "author": "singhanjesh",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
