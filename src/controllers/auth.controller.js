@@ -49,6 +49,34 @@ export const signUp = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
     // Implementation for user login
+    try {
+        const {email, password} = req.body;
+        const user = await User.findOne({email});
+        if(!user){
+            const error = new Error('Invalid email or password');
+            error.statusCode = 401;
+            throw error;
+        }
+
+        const isPasswordValid = await bcrypt.compare(String(password), user.password);
+        if(!isPasswordValid){
+            const error = new Error('Invalid email or password');
+            error.statusCode = 401;
+            throw error;
+        }
+
+        const token = jwt.sign(
+            {userId: user._id}, 
+            process.env.JWT_SECRET, 
+            {expiresIn: process.env.JWT_EXPIRY}
+        );
+
+        res
+        .status(200)
+        .json({success: true, message: 'Login successful', data: {token, user,}});
+    } catch (error) {
+        next(error);
+    }
 }
 
 export const logout = async (req, res, next) => {
