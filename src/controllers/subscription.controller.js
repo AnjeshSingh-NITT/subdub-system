@@ -16,7 +16,7 @@ export const createSubscription = async (req,res,next) => {
 export const getUserSubscriptions = async (req, res, next) => {
     try {
         const subscriptions = await Subscription.find({ user: req.user._id });
-        res.status(200).json({ success: true, data: subscriptions });
+        res.status(200).json({ success: true, count: subscriptions.length, data: subscriptions });
     } catch (error) {
         next(error);
     }
@@ -86,6 +86,90 @@ export const updateSubscription = async (req, res, next) => {
         res.status(200).json({
             success: true,
             data: subscription
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const deleteSubscription = async (req, res, next) => {
+    try {
+        const subscription = await Subscription.findById(req.params.id);
+
+        if (!subscription) {
+            return res.status(404).json({ success: false, message: "Subscription not found" });
+        }
+
+        // Ownership check FIRST
+        if (subscription.user.toString() !== req.user._id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized!! You cannot delete this subscription"
+            });
+        }
+
+        await subscription.deleteOne();
+
+        res.status(200).json({
+            success: true,
+            message: "Subscription deleted successfully"
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const cancelSubscription = async (req, res, next) => {
+    try {
+        const subscription = await Subscription.findById(req.params.id);
+
+        if (!subscription) {
+            return res.status(404).json({ success: false, message: "Subscription not found" });
+        }
+
+        // Ownership check FIRST
+        if (subscription.user.toString() !== req.user._id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized!! You cannot cancel this subscription"
+            });
+        }
+
+        if (subscription.status === 'canceled') {
+            return res.status(400).json({
+                success: false,
+                message: "Subscription already canceled"
+            });
+        }
+
+        subscription.status = 'canceled';
+        await subscription.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Subscription canceled successfully",
+            data: subscription
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getUpcomingRenewals = async (req, res, next) => {
+    try {
+        const now = new Date();
+        const nextWeek = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+        const upcomingRenewals = await Subscription.find({
+            user: req.user._id,
+            renewalDate: { $gte: now, $lte: nextWeek },
+            status: 'active'
+        });
+
+        res.status(200).json({
+            success: true,
+            count: upcomingRenewals.length,
+            data: upcomingRenewals
         });
     } catch (error) {
         next(error);
