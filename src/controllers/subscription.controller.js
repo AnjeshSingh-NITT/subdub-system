@@ -15,12 +15,16 @@ export const createSubscription = async (req,res,next) => {
 
 export const getUserSubscriptions = async (req, res, next) => {
     try {
-        // check if user is same as the one in the token
-        if(req.user._id.toString() !== req.params.id){
-            return res.status(403).json({success: false, message: 'Forbidden'});
-        }
         const subscriptions = await Subscription.find({ user: req.user._id });
         res.status(200).json({ success: true, data: subscriptions });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const getSubscriptions = async (req, res, next) => {
+    try {
+        
     } catch (error) {
         next(error);
     }
