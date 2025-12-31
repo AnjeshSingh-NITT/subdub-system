@@ -67,8 +67,8 @@ const subscriptionSchema = new mongoose.Schema({
 
 //autocalculate renewal date and status before saving
 
-subscriptionSchema.pre('save', function () {
-    if (!this.renewalDate) {
+subscriptionSchema.pre('validate', function () {
+    if (!this.renewalDate || this.isModified('startDate')) {
         const periods = {
             daily: 1,
             weekly: 7,
@@ -78,12 +78,12 @@ subscriptionSchema.pre('save', function () {
 
         const renewalDate = new Date(this.startDate);
         renewalDate.setDate(renewalDate.getDate() + periods[this.frequency]);
+
         this.renewalDate = renewalDate;
     }
 
     this.status = this.renewalDate > new Date() ? 'active' : 'expired';
 });
-
 
 const Subscription = mongoose.model('Subscription', subscriptionSchema);
 
