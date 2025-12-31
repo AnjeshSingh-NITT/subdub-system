@@ -8,6 +8,7 @@ export const getUsers = async (req, res, next) => {
         
         res.status(200).json({
             success: true,
+            count: users.length,
             data: users,
         });
     } catch (error) {
@@ -55,6 +56,19 @@ export const updateMe = async (req, res, next) => {
         await user.save();
 
         res.status(200).json({ success: true, data: user });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const deleteMe = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user._id).select('-password');
+        if(!user){
+            return res.status(404).json({success: false, message: 'User not found'});
+        }
+        await user.deleteOne();
+        res.status(200).json({success: true, message: 'User deleted successfully'});
     } catch (error) {
         next(error);
     }
